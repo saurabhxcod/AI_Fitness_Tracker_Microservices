@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database for User Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitness-postgres
+    environment:
+      - POSTGRES_DB=fitness_user_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin@123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 2. MongoDB Database for Activity and AI services
+  mongodb:
+    image: mongo:6.0
+    container_name: fitness-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  # 3. RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: fitness-rabbitmq
+    ports:
+      - "5672:5672"       # AMQP port
+      - "15672:15672"     # Management Dashboard
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    restart: unless-stopped
+
+  # 4. Keycloak Identity Provider (Port 8181)
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: fitness-keycloak
+    command: start-dev --http-port 8181
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8181:8181"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongodb_data:
